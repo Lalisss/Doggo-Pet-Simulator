@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Doggo Pet Simulator v2 🐶</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fff8f5;
+    --card:#fff;
+    --accent:#ff8a5b;
+    --muted:#6b6b6b;
+    --good:#5cd67a;
+    --bad:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#fff8f5 0%, #fff 70%);font-family:"Kanit",sans-serif;display:flex;align-items:center;justify-content:center;padding:20px;min-height:100vh}
+  .wrap{width:100%;max-width:980px;background:var(--card);border-radius:18px;box-shadow:0 12px 30px rgba(0,0,0,0.08);padding:18px;display:grid;grid-template-columns:360px 1fr;gap:18px}
+  .pet-area{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px}
+  .pet-box{width:320px;height:320px;background:linear-gradient(180deg,#fff,#fff8f0);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border:3px solid rgba(0,0,0,0.03)}
+  .pet-img{width:220px; height:220px; object-fit:contain; transition:transform .35s ease, filter .25s ease}
+  .pet-happy{transform:translateY(-8px) scale(1.04)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+  button{background:var(--accent);border:none;color:white;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700}
+  button.ghost{background:transparent;color:var(--muted);border:1px dashed rgba(0,0,0,0.06)}
+  .status{width:100%;padding:10px;border-radius:12px;background:linear-gradient(180deg,#fff,#fff8f8);box-shadow:0 6px 16px rgba(0,0,0,0.04)}
+  .bar{height:12px;border-radius:999px;background:#eee;overflow:hidden;margin-top:8px}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--good),#3be0a8);width:50%}
+  .bar.bad > i{background:linear-gradient(90deg,var(--accent),#ffb38a)}
+  .meta{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:8px}
+  .small{font-size:13px;color:var(--muted)}
+  .panel{padding:10px; border-radius:12px}
+  .side-right{display:flex;flex-direction:column;gap:12px}
+  .row{display:flex;gap:8px;align-items:center}
+  select{padding:8px;border-radius:10px;border:1px solid #eee}
+  .log{height:180px;overflow:auto;padding:10px;background:#fff;border-radius:10px;border:1px solid #f0f0f0}
+  .log p{margin:6px 0;padding:6px;border-radius:8px;background:rgba(0,0,0,0.03)}
+  .badge{background:var(--accent);color:white;padding:6px 8px;border-radius:999px;font-weight:700}
+  footer{margin-top:8px;font-size:12px;color:var(--muted);text-align:center}
+  .top-row{display:flex;gap:10px;align-items:center;justify-content:space-between;width:100%}
+  .name{font-weight:800;font-size:22px}
+  @media (max-width:880px){.wrap{grid-template-columns:1fr;}.pet-box{width:100%;height:260px}.pet-img{width:160px;height:160px}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="pet-area">
+      <div class="top-row" style="width:100%">
+        <div>
+          <div class="name" id="petTitle">Doggo</div>
+          <div class="small" id="statusLine">สุขภาพดี • อารมณ์ดี</div>
+        </div>
+        <div>
+          <select id="breedSelect" title="เปลี่ยนสายพันธุ์">
+            <option value="shiba">Shiba Inu</option>
+            <option value="corgi">Corgi</option>
+            <option value="golden">Golden Retriever</option>
+            <option value="husky">Husky</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pet-box" id="petBox" title="คลิกเพื่อลูบหัว">
+        <img id="petImg" class="pet-img" src="images/shiba.png" alt="doggo">
+      </div>
+
+      <div class="controls">
+        <button id="feedBtn">🍖 ให้อาหาร</button>
+        <button id="playBtn">🎾 เล่นด้วย</button>
+        <button id="sleepBtn">😴 พักผ่อน</button>
+        <button class="ghost" id="groomBtn">🛁 ทำความสะอาด</button>
+      </div>
+
+      <div class="status panel" style="width:100%">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>สถานะของหมา</strong></div>
+          <div class="small">บันทึกอัตโนมัติ</div>
+        </div>
+
+        <div style="margin-top:8px">
+          <div class="small">ความหิว <span id="hungerVal" style="float:right">50</span></div>
+          <div class="bar bad"><i id="hungerBar" style="width:50%"></i></div>
+
+          <div class="small" style="margin-top:8px">ความสุข <span id="happyVal" style="float:right">60</span></div>
+          <div class="bar"><i id="happyBar" style="width:60%"></i></div>
+
+          <div class="small" style="margin-top:8px">พลังงาน <span id="energyVal" style="float:right">70</span></div>
+          <div class="bar"><i id="energyBar" style="width:70%"></i></div>
+        </div>
+      </div>
+
+      <footer>ปรับแต่งรูปหมาได้ที่โฟลเดอร์ <code>images/</code> • โค้ดบันทึกสถานะลงเครื่อง</footer>
+    </div>
+
+    <div class="side-right">
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>ข้อมูล & การตั้งค่า</strong></div>
+          <div><span class="badge" id="ageBadge">อายุ: 0 วัน</span></div>
+        </div>
+
+        <div style="margin-top:10px" class="row">
+          <div style="flex:1">
+            <div class="small">ชื่อหมา</div>
+            <input id="petName" placeholder="ตั้งชื่อหมา (เช่น บับเบิ้ล)" style="width:100%;padding:8px;border-radius:8px;border:1px solid #eee" />
+          </div>
+          <div style="width:120px">
+            <div class="small">สีธีม</div>
+            <input type="color" id="themeColor" value="#ff8a5b" style="width:100%;height:40px;border-radius:8px;border:1px solid #eee" />
+          </div>
+        </div>
+
+        <div style="margin-top:10px" class="row">
+          <button id="renameBtn" class="ghost">บันทึกชื่อ</button>
+          <button id="resetBtn" class="ghost">รีเซ็ตสถานะ</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <strong>บันทึกกิจกรรม</strong>
+        <div class="log" id="logBox"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="shareBtn" class="ghost">แชร์สถานะ</button>
+          <button id="exportBtn" class="ghost">ดาวน์โหลดบันทึก</button>
+        </div>
+      </div>
+
+      <div class="panel" style="text-align:center">
+        <div class="small">Auto-save: ทุกการกระทำจะถูกบันทึกลงเครื่อง</div>
+        <div style="margin-top:8px;display:flex;gap:8px;justify-content:center">
+          <button id="ttsBtn">🔊 อ่านสถานะด้วยเสียง</button>
+          <button id="soundToggle" class="ghost">🔈 เสียงเอฟเฟกต์: เปิด</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* Doggo Pet Simulator v2
+ - บันทึก: วางไฟล์นี้เป็น index.html
+ - สร้างโฟลเดอร์ images/ แล้วใส่ไฟล์: shiba.png, corgi.png, golden.png, husky.png (ถ้าไม่มีจะแสดง placeholder)
+ - (Optional) ใส่ sounds/bark.mp3 ถ้าต้องการเสียงเห่า และ uncomment ในโค้ดด้านล่าง
+*/
+
+(() => {
+  const KEY = 'doggo_pet_v2';
+  const DEFAULT = {
+    name: "Doggo",
+    breed: "shiba",
+    hunger: 50,
+    happy: 60,
+    energy: 70,
+    createdAt: Date.now(),
+    logs: []
+  };
+
+  // DOM
+  const petImg = document.getElementById('petImg');
+  const hungerBar = document.getElementById('hungerBar');
+  const happyBar = document.getElementById('happyBar');
+  const energyBar = document.getElementById('energyBar');
+  const hungerVal = document.getElementById('hungerVal');
+  const happyVal = document.getElementById('happyVal');
+  const energyVal = document.getElementById('energyVal');
+  const statusLine = document.getElementById('statusLine');
+  const ageBadge = document.getElementById('ageBadge');
+  const logBox = document.getElementById('logBox');
+  const petNameInput = document.getElementById('petName');
+  const breedSelect = document.getElementById('breedSelect');
+  const themeColor = document.getElementById('themeColor');
+  const petTitle = document.getElementById('petTitle');
+
+  // optional sound element (uncomment if you add sounds/bark.mp3)
+  // const barkSound = new Audio('sounds/bark.mp3');
+
+  let pet = JSON.parse(localStorage.getItem(KEY) || 'null') || DEFAULT;
+
+  function saveState(actionText) {
+    pet.updatedAt = Date.now();
+    localStorage.setItem(KEY, JSON.stringify(pet));
+    if (actionText) addLog(actionText);
+  }
+
+  function addLog(text) {
+    const time = new Date().toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
+    pet.logs.unshift({time, text});
+    if (pet.logs.length > 200) pet.logs.pop();
+    renderLogs();
+    localStorage.setItem(KEY, JSON.stringify(pet));
+  }
+
+  function renderLogs() {
+    logBox.innerHTML = '';
+    if (!pet.logs || pet.logs.length === 0) {
+      logBox.innerHTML = '<p class="small">ยังไม่มีบันทึก — เริ่มเลี้ยงหมาน้อยของคุณเลย!</p>';
+      return;
+    }
+    pet.logs.forEach(l => {
+      const p = document.createElement('p');
+      p.innerHTML = `<strong style="font-size:13px">${l.time}</strong> — ${l.text}`;
+      logBox.appendChild(p);
+    });
+  }
+
+  function applyState() {
+    petNameInput.value = pet.name;
+    breedSelect.value = pet.breed || DEFAULT.breed;
+    petImg.src = `images/${pet.breed || DEFAULT.breed}.png`;
+    hungerVal.textContent = Math.round(pet.hunger);
+    happyVal.textContent = Math.round(pet.happy);
+    energyVal.textContent = Math.round(pet.energy);
+    hungerBar.style.width = Math.min(100, Math.max(0, pet.hunger)) + '%';
+    happyBar.style.width = Math.min(100, Math.max(0, pet.happy)) + '%';
+    energyBar.style.width = Math.min(100, Math.max(0, pet.energy)) + '%';
+    ageBadge.textContent = 'อายุ: ' + Math.floor((Date.now() - pet.createdAt) / (1000*60*60*24)) + ' วัน';
+    const mood = pet.happy > 75 ? 'อารมณ์ดีมาก' : (pet.happy > 45 ? 'อารมณ์ดี' : 'หงอย');
+    const health = (pet.hunger < 75 && pet.energy > 25) ? 'สุขภาพดี' : 'ต้องดูแล';
+    statusLine.textContent = `${health} • ${mood}`;
+    petTitle.textContent = pet.name || DEFAULT.name;
+    renderLogs();
+    document.documentElement.style.setProperty('--accent', themeColor.value || '#ff8a5b');
+  }
+
+  // behaviors
+  function animateHappy() {
+    petImg.classList.add('pet-happy');
+    setTimeout(()=>petImg.classList.remove('pet-happy'), 700);
+  }
+
+  function feed() {
+    pet.hunger = Math.max(0, pet.hunger - 18);
+    pet.happy = Math.min(100, pet.happy + 6);
+    pet.energy = Math.min(100, pet.energy + 6);
+    animateHappy();
+    // if (barkSound) barkSound.play();
+    saveState('ให้อาหาร: 🍖 ลดความหิว เพิ่มความสุข');
+    applyState();
+  }
+
+  function play() {
+    if (pet.energy < 12) {
+      addLog('เหนื่อยเกินไป ยังไม่พร้อมเล่น — ให้พักก่อน 😴');
+      return;
+    }
+    pet.happy = Math.min(100, pet.happy + 16);
+    pet.hunger = Math.min(100, pet.hunger + 12);
+    pet.energy = Math.max(0, pet.energy - 18);
+    animateHappy();
+    saveState('เล่นด้วยกัน: 🎾 สนุก! แต่เสียพลังงาน');
+    applyState();
+  }
+
+  function sleep() {
+    pet.energy = Math.min(100, pet.energy + 32);
+    pet.hunger = Math.min(100, pet.hunger + 6);
+    saveState('พักผ่อน: 😴 +พลังงาน');
+    applyState();
+  }
+
+  function groom() {
+    pet.happy = Math.min(100, pet.happy + 8);
+    saveState('ทำความสะอาด: 🛁 +ความสุข');
+    applyState();
+  }
+
+  // click pet to pet
+  petImg.addEventListener('click', ()=>{
+    pet.happy = Math.min(100, pet.happy + 4);
+    animateHappy();
+    saveState('ลูบหัวหมา: +ความสุขเล็กน้อย');
+    applyState();
+  });
+
+  // periodic gentle decay (every 45 seconds)
+  setInterval(()=> {
+    pet.hunger = Math.min(100, pet.hunger + 0.8);
+    pet.energy = Math.max(0, pet.energy - 0.5);
+    if (pet.hunger > 80) pet.happy = Math.max(0, pet.happy - 0.5);
+    saveState();
+    applyState();
+  }, 45_000);
+
+  // UI bindings
+  document.getElementById('feedBtn').addEventListener('click', feed);
+  document.getElementById('playBtn').addEventListener('click', play);
+  document.getElementById('sleepBtn').addEventListener('click', sleep);
+  document.getElementById('groomBtn').addEventListener('click', groom);
+
+  document.getElementById('renameBtn').addEventListener('click', ()=>{
+    const name = petNameInput.value.trim() || 'Doggo';
+    pet.name = name;
+    saveState('เปลี่ยนชื่อเป็น: ' + name);
+    applyState();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    if(!confirm('ยืนยันรีเซ็ตสถานะหมา? ข้อมูลจะกลับไปค่าเริ่มต้น')) return;
+    pet = {...DEFAULT, createdAt: Date.now()};
+    localStorage.removeItem(KEY);
+    saveState('รีเซ็ตสถานะเป็นค่าเริ่มต้น');
+    applyState();
+  });
+
+  breedSelect.addEventListener('change', ()=>{
+    pet.breed = breedSelect.value;
+    petImg.src = `images/${pet.breed}.png`;
+    saveState('เปลี่ยนสายพันธุ์เป็น ' + pet.breed);
+    applyState();
+  });
+
+  themeColor.addEventListener('input', ()=>{
+    document.documentElement.style.setProperty('--accent', themeColor.value);
+  });
+
+  document.getElementById('shareBtn').addEventListener('click', ()=>{
+    const summary = `${pet.name} • ความหิว ${Math.round(pet.hunger)} • ความสุข ${Math.round(pet.happy)} • พลังงาน ${Math.round(pet.energy)}`;
+    if(navigator.share){
+      navigator.share({title: pet.name + ' สถานะ', text: summary}).catch(()=>alert('แชร์ไม่ได้ในเบราว์เซอร์นี้'));
+    } else {
+      prompt('คัดลอกข้อความแชร์:', summary);
+    }
+  });
+
+  document.getElementById('exportBtn').addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(pet.logs, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `${(pet.name||'doggo')}-logs.json`; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
+
+  // Text-to-Speech read status
+  document.getElementById('ttsBtn').addEventListener('click', ()=>{
+    const text = `${pet.name} ตอนนี้ความสุข ${Math.round(pet.happy)} คะแนน ความหิว ${Math.round(pet.hunger)} คะแนน และพลังงาน ${Math.round(pet.energy)} คะแนน`;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'th-TH';
+    u.rate = 1.0;
+    u.pitch = 1.0
