@@ -1,9 +1,8 @@
 <script>
 (() => {
-  const KEY = 'doggo_pet_v2';
+  const KEY = 'doggo_pet_love';
   const DEFAULT = {
-    name: "Doggo",
-    breed: "shiba",
+    name: "LOVE 🐶",
     hunger: 50,
     happy: 60,
     energy: 70,
@@ -23,39 +22,30 @@
   const ageBadge = document.getElementById('ageBadge');
   const logBox = document.getElementById('logBox');
   const petNameInput = document.getElementById('petName');
-  const breedSelect = document.getElementById('breedSelect');
   const themeColor = document.getElementById('themeColor');
   const petTitle = document.getElementById('petTitle');
 
   let pet = JSON.parse(localStorage.getItem(KEY) || 'null') || DEFAULT;
 
-  // ✅ อัปเดตรูปภาพหมาตามสายพันธุ์
-  const dogImages = {
-    Dog: "images/Dog.png"
-  };
+  // ✅ ใช้รูปเดียวตลอด
+  const dogImage = "images/Dog.png";
 
-  // ฟังก์ชันเปลี่ยนรูป
   function updateDogImage() {
-    const breed = pet.breed || "shiba";
-    petImg.src = dogImages[breed] || "images/shiba.png";
-
-    // ตรวจว่าภาพโหลดได้ไหม
+    petImg.src = dogImage;
     petImg.onerror = () => {
       const svg = encodeURIComponent(`
         <svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'>
           <rect width='100%' height='100%' fill='#fff3ee'/>
           <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle'
-            font-size='24' fill='#ff8a5b'>ไม่มีรูป ${breed}</text>
+            font-size='24' fill='#ff8a5b'>ไม่มีรูปหมา 💔</text>
         </svg>
       `);
       petImg.src = `data:image/svg+xml;charset=utf-8,${svg}`;
     };
   }
 
-  // ฟังก์ชันอัปเดต UI
   function applyState() {
     petNameInput.value = pet.name;
-    breedSelect.value = pet.breed || DEFAULT.breed;
     updateDogImage();
     hungerVal.textContent = Math.round(pet.hunger);
     happyVal.textContent = Math.round(pet.happy);
@@ -69,13 +59,6 @@
     statusLine.textContent = `${health} • ${mood}`;
     petTitle.textContent = pet.name || DEFAULT.name;
   }
-
-  // --- ระบบเปลี่ยนสายพันธุ์ ---
-  breedSelect.addEventListener("change", () => {
-    pet.breed = breedSelect.value;
-    updateDogImage();
-    saveState("เปลี่ยนสายพันธุ์เป็น " + pet.breed);
-  });
 
   // --- ระบบให้อาหาร / เล่น / พัก / ทำความสะอาด ---
   function animateHappy() {
