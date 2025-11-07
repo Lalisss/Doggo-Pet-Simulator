@@ -1,4 +1,132 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doggo Pet Simulator 🐶💖</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    font-family: 'Kanit', sans-serif;
+    background: linear-gradient(180deg, #fff7f2, #fff);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  header {
+    background: #ff9f6e;
+    color: white;
+    text-align: center;
+    padding: 14px;
+    font-size: 22px;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px;
+  }
+  .pet-box {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .pet-box img {
+    width: 240px;
+    height: 240px;
+    object-fit: contain;
+    transition: transform 0.4s;
+  }
+  .pet-happy {
+    transform: scale(1.07);
+  }
+  .stats {
+    margin-top: 10px;
+    text-align: center;
+  }
+  .bar {
+    height: 12px;
+    width: 200px;
+    background: #eee;
+    border-radius: 20px;
+    margin: 4px auto;
+    overflow: hidden;
+  }
+  .bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #ff9f6e, #ff7a3c);
+  }
+  .buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  button {
+    background: #ff814c;
+    border: none;
+    color: white;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+  button:hover { background: #ff6a26; }
+  .log {
+    width: 90%;
+    max-width: 360px;
+    height: 120px;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #eee;
+    margin-top: 12px;
+    padding: 10px;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+  <header>🐶 Doggo Pet Simulator 💖</header>
+
+  <div class="container">
+    <div class="pet-box">
+      <h2 id="petTitle">LOVE 🐶</h2>
+      <img id="petImg" src="images/Dog.png" alt="doggo">
+      <div class="stats">
+        <p id="statusLine">สุขภาพดี • อารมณ์ดี</p>
+        <div>ความหิว <div class="bar"><span id="hungerBar" style="width:50%"></span></div></div>
+        <div>ความสุข <div class="bar"><span id="happyBar" style="width:60%"></span></div></div>
+        <div>พลังงาน <div class="bar"><span id="energyBar" style="width:70%"></span></div></div>
+      </div>
+      <div class="buttons">
+        <button id="feedBtn">🍖 ให้อาหาร</button>
+        <button id="playBtn">🎾 เล่นด้วย</button>
+        <button id="sleepBtn">😴 พักผ่อน</button>
+        <button id="groomBtn">🛁 ทำความสะอาด</button>
+      </div>
+    </div>
+
+    <div class="log" id="logBox">
+      <p>🐾 ยินดีต้อนรับ! เริ่มเลี้ยงหมาน้อยของคุณได้เลย</p>
+    </div>
+  </div>
+
 <script>
+window.onload = () => {
 (() => {
   const KEY = 'doggo_pet_love';
   const DEFAULT = {
@@ -15,19 +143,11 @@
   const hungerBar = document.getElementById('hungerBar');
   const happyBar = document.getElementById('happyBar');
   const energyBar = document.getElementById('energyBar');
-  const hungerVal = document.getElementById('hungerVal');
-  const happyVal = document.getElementById('happyVal');
-  const energyVal = document.getElementById('energyVal');
   const statusLine = document.getElementById('statusLine');
-  const ageBadge = document.getElementById('ageBadge');
   const logBox = document.getElementById('logBox');
-  const petNameInput = document.getElementById('petName');
-  const themeColor = document.getElementById('themeColor');
   const petTitle = document.getElementById('petTitle');
 
   let pet = JSON.parse(localStorage.getItem(KEY) || 'null') || DEFAULT;
-
-  // ✅ ใช้รูปเดียวตลอด
   const dogImage = "images/Dog.png";
 
   function updateDogImage() {
@@ -44,27 +164,34 @@
     };
   }
 
+  function addLog(text) {
+    const time = new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});
+    const p = document.createElement("p");
+    p.textContent = `${time} — ${text}`;
+    logBox.prepend(p);
+  }
+
+  function saveState(text) {
+    pet.updatedAt = Date.now();
+    if (text) addLog(text);
+    localStorage.setItem(KEY, JSON.stringify(pet));
+  }
+
   function applyState() {
-    petNameInput.value = pet.name;
-    updateDogImage();
-    hungerVal.textContent = Math.round(pet.hunger);
-    happyVal.textContent = Math.round(pet.happy);
-    energyVal.textContent = Math.round(pet.energy);
-    hungerBar.style.width = Math.min(100, Math.max(0, pet.hunger)) + '%';
-    happyBar.style.width = Math.min(100, Math.max(0, pet.happy)) + '%';
-    energyBar.style.width = Math.min(100, Math.max(0, pet.energy)) + '%';
-    ageBadge.textContent = 'อายุ: ' + Math.floor((Date.now() - pet.createdAt) / (1000*60*60*24)) + ' วัน';
+    hungerBar.style.width = pet.hunger + "%";
+    happyBar.style.width = pet.happy + "%";
+    energyBar.style.width = pet.energy + "%";
     const mood = pet.happy > 75 ? 'อารมณ์ดีมาก' : (pet.happy > 45 ? 'อารมณ์ดี' : 'หงอย');
     const health = (pet.hunger < 75 && pet.energy > 25) ? 'สุขภาพดี' : 'ต้องดูแล';
     statusLine.textContent = `${health} • ${mood}`;
-    petTitle.textContent = pet.name || DEFAULT.name;
+    petTitle.textContent = pet.name;
   }
 
-  // --- ระบบให้อาหาร / เล่น / พัก / ทำความสะอาด ---
   function animateHappy() {
     petImg.classList.add("pet-happy");
-    setTimeout(() => petImg.classList.remove("pet-happy"), 700);
+    setTimeout(() => petImg.classList.remove("pet-happy"), 600);
   }
+
   function feed() {
     pet.hunger = Math.max(0, pet.hunger - 18);
     pet.happy = Math.min(100, pet.happy + 6);
@@ -97,39 +224,16 @@
     applyState();
   }
 
-  // --- ระบบบันทึกและ Log ---
-  function saveState(text) {
-    pet.updatedAt = Date.now();
-    if (text) addLog(text);
-    localStorage.setItem(KEY, JSON.stringify(pet));
-  }
-  function addLog(text) {
-    const time = new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});
-    pet.logs.unshift({ time, text });
-    if (pet.logs.length > 200) pet.logs.pop();
-    renderLogs();
-  }
-  function renderLogs() {
-    logBox.innerHTML = "";
-    if (!pet.logs.length) {
-      logBox.innerHTML = "<p class='small'>ยังไม่มีบันทึก 🐾</p>";
-      return;
-    }
-    pet.logs.forEach((l) => {
-      const p = document.createElement("p");
-      p.innerHTML = `<strong>${l.time}</strong> — ${l.text}`;
-      logBox.appendChild(p);
-    });
-  }
-
-  // --- ผูกปุ่ม ---
   document.getElementById("feedBtn").addEventListener("click", feed);
   document.getElementById("playBtn").addEventListener("click", play);
   document.getElementById("sleepBtn").addEventListener("click", sleep);
   document.getElementById("groomBtn").addEventListener("click", groom);
 
-  // --- เริ่มต้น ---
+  updateDogImage();
   applyState();
-  renderLogs();
 })();
+};
 </script>
+
+</body>
+</html>
